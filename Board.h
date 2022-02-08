@@ -19,9 +19,6 @@ public:
 private:
     int m_gridSize = 10;
 	Tile m_tiles[10][10];
-	
-	Boat m_boats[10];
-	int m_nbBoats;
 };
 
 #endif // BOARD_H

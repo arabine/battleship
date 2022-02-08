@@ -4,7 +4,7 @@
 
 Board::Board()
 {
-	m_nbBoats = 0;
+
 }
 
 void Board::Print()
