@@ -1,7 +1,9 @@
 
 #include "Player.h"
 #include <iostream>
+#include <thread>
 #include <iomanip>
+#include "Random.h"
 
 Player::Player()
 {
@@ -21,7 +23,57 @@ void Player::Print()
 	m_myShots.Print();
 }
 
-bool Player::PlaceBoat(Boat& b)
+bool Player::PlaceBoat(Boat &b)
+{
+    return m_myBoard.AddBoat(b);
+}
+
+void Player::EnemyFire(const Point &p)
+{
+    m_myBoard.Fire(p);
+}
+
+Point Player::PlayRandom()
+{
+    Random rng(0, 9);
+
+    // simule une réflexion
+    std::this_thread::sleep_for(std::chrono::milliseconds(100 * rng.get()));
+    Random rng2(0, 9);
+    Point p(rng.get(), rng2.get());
+    return p;
+}
+
+Point Player::Play()
+{
+    bool valid = false;
+    int x = 0;
+    int y = 0;
+    Point p;
+
+    do {
+        std::cout << "Entrez les coordonnées du tir (ex: B4): ";
+        std::string coord;
+        std::cin >> coord;
+
+        if (p.FromString(coord))
+        {
+            if ((p.GetX() < m_myBoard.GetSize()) && (p.GetY() < m_myBoard.GetSize()))
+            {
+                valid = true;
+            }
+        }
+
+        if (!valid)
+        {
+            std::cout << "Invalide!" << std::endl;
+        }
+    } while(!valid);
+
+    return p;
+}
+
+bool Player::AskForPosition(Boat& b)
 {
     bool valid = false;
     
@@ -36,27 +88,22 @@ bool Player::PlaceBoat(Boat& b)
     std::string direction;
     std::cin >> direction;
     
-    if (isalpha(coord[0]) && isdigit(coord[1]))
+    Point p;
+    valid = p.FromString(coord);
+
+    if (valid)
     {
-        int x = toupper(coord[0]) - 'A';
-        int y = coord[1] - '1';
-        
-        if (isdigit(coord[2]))
-        {
-            y = 10 + coord[2] - '1';
-        }
-        
         Boat::Direction dir = Boat::HORIZONTAL;
         if (direction[0] == '0')
         {
             dir = Boat::VERTICAL;
         }
         
-        std::cout << x << " " << y << std::endl;
+        std::cout << p;
         
-        if ((x < m_myBoard.GetSize()) && (y < m_myBoard.GetSize()))
+        if ((p.GetX() < m_myBoard.GetSize()) && (p.GetY() < m_myBoard.GetSize()))
         {
-            b.SetPosition(x, y, dir);
+            b.SetPosition(p, dir);
             valid = m_myBoard.AddBoat(b);
         }
     }

@@ -2,6 +2,7 @@
 #define TILE_H
 
 #include "Boat.h"
+#include "Point.h"
 
 class Tile
 {
@@ -16,8 +17,9 @@ public:
 	Tile();
     ~Tile();
 	
-	void Print();
+    void Print(const Point &p);
     void SetBoat(Boat &b);
+    void SetShot(const Point &p);
 	Tile::State GetState() const;
     
 private:

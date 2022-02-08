@@ -7,6 +7,10 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 add_executable(battleship
     main.cpp
+    Random.h
+
+    Point.h
+    Point.cpp
 
     Boat.cpp
     Boat.h
@@ -25,4 +29,13 @@ add_executable(battleship
 
     Tile.h
     Tile.cpp
+
+    AircraftCarrier.h
+    AircraftCarrier.cpp
+
+    Cruiser.h
+    Cruiser.cpp
+
+    Destroyer.h
+    Destroyer.cpp
 )

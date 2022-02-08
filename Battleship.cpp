@@ -1,7 +1,7 @@
 #include "Battleship.h"
 
 Battleship::Battleship()
-    : Boat("Batteship", 'B', 5)
+    : Boat("Batteship", 'B', 4)
 {
     
 }

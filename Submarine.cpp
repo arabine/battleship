@@ -1,7 +1,7 @@
 #include "Submarine.h"
 
 Submarine::Submarine()
-    : Boat("Submarine", 'S', 2)
+    : Boat("Submarine", 'S', 3)
 {
     
 }
