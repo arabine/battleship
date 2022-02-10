@@ -8,6 +8,7 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 add_executable(battleship
     main.cpp
     Random.h
+    cpp-httplib/httplib.h
 
     Point.h
     Point.cpp
@@ -38,4 +39,7 @@ add_executable(battleship
 
     Destroyer.h
     Destroyer.cpp
+
 )
+
+target_include_directories(battleship PUBLIC cpp-httplib)

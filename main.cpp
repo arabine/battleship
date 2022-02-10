@@ -10,6 +10,12 @@
 #include "Destroyer.h"
 #include "Cruiser.h"
 
+
+#include "httplib.h"
+
+#define GAME_TCP_PORT1   12345
+#define GAME_TCP_PORT2   12346
+
 struct Fleet
 {
     std::vector<Boat> boats;
@@ -37,9 +43,106 @@ struct Fleet
     }
 };
 
-int main(int argc, char **argv)
+
+class Game
 {
-	std::cout << "[BATTLE] Starting" << std::endl;
+
+public:
+    enum State {
+        MY_TURN,
+        HIS_TURN,
+    };
+
+    Game(Game::State state)
+        : mState(state)
+    {
+        for (auto &b : mFleet.boats)
+        {
+            do {
+                b.GenerateRandomPosition(10, 10);
+            } while(!mPlayer.PlaceBoat(b));
+        }
+
+        mPlayer.PrintMyBoard();
+    }
+
+protected:
+    State mState;
+    Player mPlayer;
+    Fleet mFleet;
+};
+
+class NetGame : public Game
+{
+
+public:
+
+    NetGame(int myPort, int opponentPort, Game::State state)
+        : Game(state)
+        , mPort(myPort)
+        , mOpponentPort(opponentPort)
+    {
+
+    }
+
+    void Start() {
+        mServer.Post("/play", [this](const httplib::Request &req, httplib::Response &res) {
+
+            // On reçoit le tir ennemy
+            if (mState == HIS_TURN)
+            {
+               Point p;
+               p.FromString(std::string(req.body));
+               std::cout << "CLIENT played: " << p;
+               mPlayer.EnemyFire(p);
+               mPlayer.PrintMyBoard();
+
+               // C'est à nous de jouer
+                Play();
+
+//               res->status;
+//               res->body;
+            }
+            else
+            {
+
+            }
+
+            res.set_content("Hello World!", "text/plain");
+        });
+
+
+        // On commence à tirer si c'est à notre tour de commencer ...
+        if (mState == MY_TURN)
+        {
+            std::cout << "[NET] Wait for oppent start..." << std::endl;
+            std::this_thread::sleep_for(std::chrono::seconds(2));
+
+            mState = HIS_TURN;
+            Play();
+        }
+
+        mServer.listen("127.0.0.1", mPort);
+    }
+
+    void Play()
+    {
+        std::cout << "PLAY" << std::endl;
+        Point p = mPlayer.Play();
+        httplib::Client cli("127.0.0.1", mOpponentPort);
+
+        auto res = cli.Post("/play", p.ToString(), "text/plain");
+    }
+private:
+    int mPort = 12345;
+    int mOpponentPort;
+//    httplib::Client mClient;
+    httplib::Server mServer;
+};
+
+
+void RunSoloGameVersusAI()
+{
     Player human;
     Player computer;
 
@@ -67,8 +170,8 @@ int main(int argc, char **argv)
         do {
             b.GenerateRandomPosition(10, 10);
         } while(!computer.PlaceBoat(b));
-	}
-    
+    }
+
     human.PrintMyBoard();
     computer.PrintMyBoard();
 
@@ -84,13 +187,16 @@ int main(int argc, char **argv)
 
         victory = fleet_human.IsDestroyed();
 
-        p = computer.PlayRandom();
-        human.EnemyFire(p);
+        if (!victory)
+        {
+            p = computer.PlayRandom();
+            human.EnemyFire(p);
 
-        victory = fleet_computer.IsDestroyed();
+            victory = fleet_computer.IsDestroyed();
 
-        human.PrintMyBoard();
-        computer.PrintMyBoard();
+            human.PrintMyBoard();
+            computer.PrintMyBoard();
+        }
     }
     while (!victory);
 
@@ -106,9 +212,42 @@ int main(int argc, char **argv)
         std::cout << "            VOUS AVEZ GAGNÉ!                   \n";
         std::cout << "===============================================\n" << std::endl;
     }
-    
+
     std::this_thread::sleep_for(std::chrono::seconds(2));
-    
-	std::cout << "[BATTLE] Stopped" << std::endl;
+
+    std::cout << "[BATTLE] Stopped" << std::endl;
+}
+
+
+int main(int argc, char **argv)
+{
+	std::cout << "[BATTLE] Starting" << std::endl;
+
+    bool solo = true;
+    bool start = false;
+
+    if (argc > 1) {
+        solo = false;
+        if (std::string(argv[1]) == "start")
+        {
+            start = true;
+        }
+    }
+
+    if (solo)
+    {
+        RunSoloGameVersusAI();
+    }
+    else
+    {
+        int port1 = start ? GAME_TCP_PORT1 : GAME_TCP_PORT2;
+        int port2 = start ? GAME_TCP_PORT2 : GAME_TCP_PORT1;
+        Game::State state = start ? Game::MY_TURN : Game::HIS_TURN;
+
+        NetGame game(port1, port2, state);
+        game.Start();
+    }
+
+
 	return 0;
 }

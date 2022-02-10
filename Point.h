@@ -13,6 +13,7 @@ public:
     int GetY() const { return m_y; }
 
     bool FromString(const std::string &coord);
+    std::string ToString() const;
 
     friend std::ostream& operator<< (std::ostream& stream, const Point& p) {
         stream << "X: " << p.GetX() << ", Y: " << p.GetY() << std::endl;

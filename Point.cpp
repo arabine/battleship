@@ -35,3 +35,23 @@ bool Point::FromString(const std::string &coord)
     }
     return valid;
 }
+
+std::string Point::ToString() const
+{
+    std::string pos;
+    char y = 'A' + m_x;
+    pos.push_back(y);
+
+    if (m_y == 9)
+    {
+        pos.push_back('1');
+        pos.push_back('0');
+    }
+    else
+    {
+        char y = '1' + m_y;
+        pos.push_back(y);
+    }
+    pos.push_back(0);
+    return pos;
+}
